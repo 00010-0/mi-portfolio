@@ -93,7 +93,7 @@ function Particles() {
     draw();
     return () => { window.removeEventListener("resize", resize); cancelAnimationFrame(raf); };
   }, []);
-  return <canvas ref={canvas} style={{ position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0 }} />;
+  return <canvas ref={canvas} style={{ position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0 }} />;
 }
 
 function TiltCard({ children, style = {} }) {
@@ -146,10 +146,10 @@ function Counter({ to, suffix="" }) {
 }
 
 const NAV = [
-  { id:"inicio", label:"Inicio", icon:"○" },
-  { id:"servicios", label:"Servicios", icon:"◈" },
-  { id:"sobre-mi", label:"Sobre mí", icon:"◑" },
-  { id:"contacto", label:"Contacto", icon:"◎" },
+  { id:"inicio", label:"Inicio" },
+  { id:"servicios", label:"Servicios" },
+  { id:"sobre-mi", label:"Sobre mí" },
+  { id:"contacto", label:"Contacto" },
 ];
 
 const SERVICES_EMPRESA = [
@@ -167,16 +167,100 @@ const SERVICES_PARTICULAR = [
 ];
 const TAGS = ["HTML / CSS","JavaScript","React","Node.js","WordPress","Figma","E-commerce","SEO","B2B","UI/UX"];
 
+function TopNav({ active, navigate }) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById("main-scroll");
+    if (!el) return;
+    const onScroll = () => setScrolled(el.scrollTop > 20);
+    el.addEventListener("scroll", onScroll);
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <header style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0 clamp(24px, 5vw, 80px)",
+      height: 64,
+      background: scrolled ? "rgba(248,247,245,0.92)" : "transparent",
+      backdropFilter: scrolled ? "blur(12px)" : "none",
+      transition: "background 0.4s, backdrop-filter 0.4s",
+    }}>
+      {/* Logo */}
+      <div style={{ display:"flex", alignItems:"center", gap:10, cursor:"default" }}
+        onClick={() => navigate("inicio")}>
+        <div style={{
+          width: 32, height: 32, borderRadius: "50%",
+          background: "linear-gradient(135deg,#e8e4dc,#ccc9c0)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 11, fontWeight: 600, color: "#6b6a67",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
+          cursor: "pointer",
+          transition: "transform 0.4s cubic-bezier(.22,1,.36,1)"
+        }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.12) rotate(-5deg)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1) rotate(0deg)"}>
+          AS
+        </div>
+        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize: 14, fontWeight: 600, color: "#111" }}>Antonio Sánchez</span>
+      </div>
+
+      {/* Nav links */}
+      <nav style={{ display: "flex", gap: 4 }}>
+        {NAV.map(n => {
+          const isActive = active === n.id;
+          return (
+            <button key={n.id} onClick={() => navigate(n.id)}
+              style={{
+                fontFamily: "'DM Sans',sans-serif", fontSize: 14,
+                fontWeight: isActive ? 500 : 400,
+                color: isActive ? "#111" : "#9a9995",
+                background: isActive ? "rgba(0,0,0,0.06)" : "transparent",
+                border: "none", cursor: "pointer",
+                padding: "7px 16px", borderRadius: 8,
+                transition: "all 0.3s cubic-bezier(.22,1,.36,1)",
+              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = "#555"; e.currentTarget.style.background = "rgba(0,0,0,0.04)"; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = "#9a9995"; e.currentTarget.style.background = "transparent"; } }}>
+              {n.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* CTA */}
+      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"#eef6f0", border:"1px solid #d4ead9", padding:"4px 12px 4px 10px", borderRadius:999, fontSize:12, color:"#2d6a3f", fontFamily:"'DM Sans',sans-serif" }}>
+          <span style={{ width:6, height:6, borderRadius:"50%", background:"#2d6a3f", animation:"pulseGreen 2s ease-in-out infinite", display:"inline-block" }} />
+          Disponible
+        </div>
+        <button onClick={() => navigate("contacto")}
+          style={{
+            fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 500,
+            background: "#111", color: "#fff", border: "none",
+            padding: "8px 18px", borderRadius: 8, cursor: "pointer",
+            transition: "all 0.3s", boxShadow: "0 2px 8px rgba(0,0,0,0.14)"
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#1a1a1a"; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 5px 16px rgba(0,0,0,0.22)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "#111"; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.14)"; }}>
+          Presupuesto →
+        </button>
+      </div>
+    </header>
+  );
+}
+
 function Inicio({ setActive }) {
   const [hov, setHov] = useState(null);
   const mag = useMagnetic(0.4);
   return (
-    <div style={{ fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column", justifyContent:"center", width:"100%", maxWidth:680, position:"relative", zIndex:1 }}>
+    <div style={{ fontFamily:"'DM Sans',sans-serif", display:"flex", flexDirection:"column", alignItems:"center", width:"100%", maxWidth:720, position:"relative", zIndex:1, textAlign:"center" }}>
       <Reveal delay={0}>
         <p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:28 }}>✦ Disponible para proyectos</p>
       </Reveal>
       <Reveal delay={100}>
-        <h1 style={{ fontSize:"clamp(2.4rem,4.5vw,3.8rem)", fontWeight:300, lineHeight:1.1, letterSpacing:"-2px", color:"#111", marginBottom:24 }}>
+        <h1 style={{ fontSize:"clamp(2.6rem,5vw,4.2rem)", fontWeight:300, lineHeight:1.08, letterSpacing:"-2.5px", color:"#111", marginBottom:24 }}>
           Webs que{" "}
           <span style={{ fontWeight:600, position:"relative", display:"inline-block" }}>
             funcionan
@@ -193,11 +277,12 @@ function Inicio({ setActive }) {
         </p>
       </Reveal>
       <Reveal delay={300}>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:36 }}>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:40, justifyContent:"center" }}>
           {TAGS.map((t) => (
             <span key={t} onMouseEnter={()=>setHov(t)} onMouseLeave={()=>setHov(null)}
               style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:hov===t?"#111":"#888",
-                background:hov===t?"#fff":"rgba(255,255,255,0.55)", border:`1px solid ${hov===t?"#bbb":"#e5e5e3"}`,
+                background:hov===t?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.55)",
+                border:`1px solid ${hov===t?"#bbb":"#e5e5e3"}`,
                 padding:"5px 14px", borderRadius:999, backdropFilter:"blur(4px)",
                 transform:hov===t?"translateY(-3px) scale(1.08)":"none",
                 transition:"all 0.3s cubic-bezier(.22,1,.36,1)", cursor:"default" }}>
@@ -207,9 +292,9 @@ function Inicio({ setActive }) {
         </div>
       </Reveal>
       <Reveal delay={420}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:36 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:14, marginBottom:40, width:"100%" }}>
           {[{n:20,suf:"+",label:"Proyectos entregados"},{n:null,raw:"3–5d",label:"Entrega media"},{n:100,suf:"%",label:"Satisfacción cliente"}].map((s,i) => (
-            <TiltCard key={i} style={{ background:"#fff", border:"1px solid #e8e7e4", borderRadius:16, padding:"22px 20px" }}>
+            <TiltCard key={i} style={{ background:"rgba(255,255,255,0.7)", border:"1px solid rgba(232,231,228,0.6)", borderRadius:16, padding:"22px 20px", backdropFilter:"blur(8px)" }}>
               <div style={{ fontSize:32, fontWeight:600, letterSpacing:"-1px", color:"#111", marginBottom:6 }}>
                 {s.n!==null ? <Counter to={s.n} suffix={s.suf} /> : s.raw}
               </div>
@@ -219,18 +304,44 @@ function Inicio({ setActive }) {
         </div>
       </Reveal>
       <Reveal delay={540}>
-        <div ref={mag.ref} onMouseMove={mag.onMove} onMouseLeave={mag.onLeave} style={{ display:"inline-block" }}>
-          <button onClick={()=>setActive("contacto")}
-            style={{ transform:`translate(${mag.pos.x}px,${mag.pos.y}px)`, transition:"transform 0.4s cubic-bezier(.22,1,.36,1)",
-              display:"flex", alignItems:"center", gap:10, padding:"14px 28px", borderRadius:12, border:"none",
-              background:"#111", color:"#fff", fontSize:16, fontWeight:500, cursor:"pointer",
-              fontFamily:"'DM Sans',sans-serif", boxShadow:"0 4px 20px rgba(0,0,0,0.16)" }}
-            onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.28)";e.currentTarget.style.background="#1a1a1a";}}
-            onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.16)";e.currentTarget.style.background="#111";}}>
-            Hablemos <span style={{ display:"inline-block", transition:"transform 0.3s", fontSize:17 }}
-              onMouseEnter={e=>e.currentTarget.style.transform="translateX(6px)"}
-              onMouseLeave={e=>e.currentTarget.style.transform="translateX(0)"}>→</span>
+        <div style={{ display:"flex", gap:12, alignItems:"center", flexWrap:"wrap", justifyContent:"center" }}>
+          <div ref={mag.ref} onMouseMove={mag.onMove} onMouseLeave={mag.onLeave} style={{ display:"inline-block" }}>
+            <button onClick={()=>setActive("contacto")}
+              style={{ transform:`translate(${mag.pos.x}px,${mag.pos.y}px)`, transition:"transform 0.4s cubic-bezier(.22,1,.36,1)",
+                display:"flex", alignItems:"center", gap:10, padding:"14px 28px", borderRadius:12, border:"none",
+                background:"#111", color:"#fff", fontSize:16, fontWeight:500, cursor:"pointer",
+                fontFamily:"'DM Sans',sans-serif", boxShadow:"0 4px 20px rgba(0,0,0,0.16)" }}
+              onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.28)";e.currentTarget.style.background="#1a1a1a";}}
+              onMouseLeave={e=>{e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.16)";e.currentTarget.style.background="#111";}}>
+              Hablemos <span style={{ display:"inline-block", transition:"transform 0.3s", fontSize:17 }}
+                onMouseEnter={e=>e.currentTarget.style.transform="translateX(6px)"}
+                onMouseLeave={e=>e.currentTarget.style.transform="translateX(0)"}>→</span>
+            </button>
+          </div>
+          <button onClick={()=>setActive("servicios")}
+            style={{ display:"flex", alignItems:"center", gap:8, padding:"14px 24px", borderRadius:12,
+              border:"1px solid #e5e5e3", background:"transparent", color:"#555", fontSize:15, fontWeight:400,
+              cursor:"pointer", fontFamily:"'DM Sans',sans-serif", transition:"all 0.3s" }}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.7)";e.currentTarget.style.color="#111";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color="#555";}}>
+            Ver servicios
           </button>
+        </div>
+      </Reveal>
+
+      {/* Social links */}
+      <Reveal delay={640}>
+        <div style={{ display:"flex", gap:8, marginTop:36 }}>
+          {[{label:"Discord",url:"https://discord.com/users/antoniosanchez"},{label:"GitHub",url:"https://github.com/00010-0"},{label:"Instagram",url:"https://www.instagram.com/antoniosanchezzgz/"}].map(s=>(
+            <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
+              style={{ padding:"7px 16px", fontSize:12, fontFamily:"'DM Mono',monospace", color:"#9a9995",
+                background:"rgba(255,255,255,0.5)", border:"1px solid rgba(232,231,228,0.7)",
+                borderRadius:8, textDecoration:"none", transition:"all 0.3s", backdropFilter:"blur(4px)" }}
+              onMouseEnter={e=>{ e.currentTarget.style.background="rgba(255,255,255,0.85)";e.currentTarget.style.color="#111";e.currentTarget.style.transform="translateY(-2px)"; }}
+              onMouseLeave={e=>{ e.currentTarget.style.background="rgba(255,255,255,0.5)";e.currentTarget.style.color="#9a9995";e.currentTarget.style.transform="none"; }}>
+              {s.label}
+            </a>
+          ))}
         </div>
       </Reveal>
     </div>
@@ -242,7 +353,8 @@ function ServiceRow({ s, i, hov, setHov }) {
     <Reveal key={s.n} delay={i*60}>
       <div onMouseEnter={()=>setHov(s.n)} onMouseLeave={()=>setHov(null)}
         style={{ display:"grid", gridTemplateColumns:"40px 1fr auto", alignItems:"center", gap:18,
-          padding:"18px 0", paddingLeft:hov===s.n?14:0, borderBottom:"1px solid #eeede9",
+          padding:"18px 0", paddingLeft:hov===s.n?14:0,
+          borderBottom:"1px solid rgba(200,198,193,0.3)",
           transition:"padding 0.35s cubic-bezier(.22,1,.36,1)" }}>
         <span style={{ fontFamily:"'DM Mono',monospace", fontSize:12, color:hov===s.n?"#111":"#c5c4c0", transition:"color 0.3s" }}>{s.n}</span>
         <div>
@@ -260,9 +372,12 @@ function Servicios({ setActive }) {
   const [tab, setTab] = useState("empresa");
   return (
     <div style={{ fontFamily:"'DM Sans',sans-serif", width:"100%", maxWidth:780 }}>
-      <Reveal><p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:20 }}>✦ Servicios</p></Reveal>
+      <Reveal><p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:20, textAlign:"center" }}>✦ Servicios</p></Reveal>
+      <Reveal delay={40}>
+        <h2 style={{ fontSize:"clamp(1.8rem,3vw,2.6rem)", fontWeight:300, letterSpacing:"-1.5px", color:"#111", marginBottom:28, textAlign:"center" }}>¿Qué necesitas?</h2>
+      </Reveal>
       <Reveal delay={60}>
-        <div style={{ display:"flex", gap:6, marginBottom:28, padding:4, background:"#f5f4f1", borderRadius:10, width:"fit-content" }}>
+        <div style={{ display:"flex", gap:6, marginBottom:28, padding:4, background:"rgba(245,244,241,0.8)", borderRadius:10, width:"fit-content", margin:"0 auto 28px" }}>
           {[{id:"empresa",label:"Para empresas ✦"},{id:"particular",label:"Particulares"}].map(t => (
             <button key={t.id} onClick={()=>setTab(t.id)}
               style={{ padding:"8px 20px", borderRadius:8, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
@@ -277,24 +392,24 @@ function Servicios({ setActive }) {
         <div key="empresa">
           <Reveal delay={80}>
             <div style={{ marginBottom:16, padding:"14px 18px", background:"#111", borderRadius:10, display:"flex", alignItems:"center", gap:10 }}>
-              <span style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontFamily:"'DM Mono',monospace", letterSpacing:"0.08em" }}>ENFOQUE PRINCIPAL</span>
+              <span style={{ fontSize:12, color:"rgba(255,255,255,0.5)", fontFamily:"'DM Mono',monospace", letterSpacing:"0.08em", flexShrink:0 }}>ENFOQUE PRINCIPAL</span>
               <span style={{ fontSize:13.5, color:"rgba(255,255,255,0.85)", lineHeight:1.5 }}>Trabajamos principalmente con empresas que necesitan presencia digital sólida, herramientas a medida y resultados medibles.</span>
             </div>
           </Reveal>
-          <div style={{ borderTop:"1px solid #eeede9" }}>
+          <div style={{ borderTop:"1px solid rgba(200,198,193,0.3)" }}>
             {SERVICES_EMPRESA.map((s,i) => <ServiceRow key={s.n} s={s} i={i} hov={hov} setHov={setHov} />)}
           </div>
         </div>
       )}
       {tab === "particular" && (
         <div key="particular">
-          <div style={{ borderTop:"1px solid #eeede9" }}>
+          <div style={{ borderTop:"1px solid rgba(200,198,193,0.3)" }}>
             {SERVICES_PARTICULAR.map((s,i) => <ServiceRow key={s.n} s={s} i={i} hov={hov} setHov={setHov} />)}
           </div>
         </div>
       )}
       <Reveal delay={500}>
-        <div style={{ marginTop:20, padding:"16px 20px", background:"#f5f4f1", borderRadius:12 }}>
+        <div style={{ marginTop:20, padding:"16px 20px", background:"rgba(245,244,241,0.7)", borderRadius:12, backdropFilter:"blur(4px)" }}>
           <span style={{ fontSize:14, color:"#6b6a67", lineHeight:1.6 }}>
             ¿Tienes un proyecto específico en mente?{" "}
             <button onClick={()=>setActive("contacto")} style={{ color:"#111", fontWeight:500, background:"none", border:"none", cursor:"pointer", padding:0, textDecoration:"underline", textUnderlineOffset:3, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}>
@@ -315,10 +430,13 @@ function SobreMi({ setActive }) {
     { label:"Ubicación", title:"Madrid, España", sub:"Disponible en remoto" },
   ];
   return (
-    <div style={{ fontFamily:"'DM Sans',sans-serif", width:"100%", maxWidth:620 }}>
-      <Reveal><p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:36 }}>✦ Sobre mí</p></Reveal>
+    <div style={{ fontFamily:"'DM Sans',sans-serif", width:"100%", maxWidth:680 }}>
+      <Reveal><p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:20, textAlign:"center" }}>✦ Sobre mí</p></Reveal>
+      <Reveal delay={40}>
+        <h2 style={{ fontSize:"clamp(1.8rem,3vw,2.6rem)", fontWeight:300, letterSpacing:"-1.5px", color:"#111", marginBottom:28, textAlign:"center" }}>La persona detrás del código</h2>
+      </Reveal>
       <Reveal delay={80}>
-        <div style={{ display:"flex", alignItems:"center", gap:18, marginBottom:28 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:18, marginBottom:28, justifyContent:"center" }}>
           <div style={{ width:64, height:64, borderRadius:"50%", background:"linear-gradient(135deg,#e8e4dc,#d0ccc4)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, fontWeight:600, color:"#6b6a67", flexShrink:0, boxShadow:"inset 0 1px 0 rgba(255,255,255,0.6),0 2px 8px rgba(0,0,0,0.08)" }}>AS</div>
           <div>
             <p style={{ fontSize:17, fontWeight:600, color:"#111", marginBottom:2 }}>Antonio Sánchez</p>
@@ -338,7 +456,7 @@ function SobreMi({ setActive }) {
       <Reveal delay={260}>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:20 }}>
           {items.map(it => (
-            <TiltCard key={it.label} style={{ background:"#fff", border:"1px solid #e8e7e4", borderRadius:16, padding:"18px 20px" }}>
+            <TiltCard key={it.label} style={{ background:"rgba(255,255,255,0.65)", border:"1px solid rgba(232,231,228,0.6)", borderRadius:16, padding:"18px 20px", backdropFilter:"blur(8px)" }}>
               <p style={{ fontFamily:"'DM Mono',monospace", fontSize:10.5, color:"#b8b7b2", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>{it.label}</p>
               <p style={{ fontSize:15, fontWeight:500, color:"#111", marginBottom:2 }}>{it.title}</p>
               <p style={{ fontSize:13, color:"#a8a7a3" }}>{it.sub}</p>
@@ -363,7 +481,7 @@ function SuccessScreen({ name, onReset }) {
   const [show, setShow] = useState(false);
   useEffect(() => { const t = setTimeout(() => setShow(true), 50); return () => clearTimeout(t); }, []);
   return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"100%", gap:24, textAlign:"center", fontFamily:"'DM Sans',sans-serif",
+    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:24, textAlign:"center", fontFamily:"'DM Sans',sans-serif",
       opacity:show?1:0, transform:show?"translateY(0)":"translateY(20px)", transition:"all 0.8s cubic-bezier(.22,1,.36,1)" }}>
       <div style={{ width:80, height:80, borderRadius:"50%", background:"#eef6f0", border:"1px solid #d4ead9", display:"flex", alignItems:"center", justifyContent:"center", animation:"bounceIn 0.9s cubic-bezier(.22,1,.36,1)" }}>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2d6a3f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -375,9 +493,9 @@ function SuccessScreen({ name, onReset }) {
         <p style={{ fontSize:15, color:"#6b6a67", maxWidth:280, lineHeight:1.75, margin:"0 auto" }}>Te respondo en menos de 24 horas. Mientras tanto, echa un ojo a mis servicios 👀</p>
       </div>
       <button onClick={onReset}
-        style={{ padding:"10px 24px", borderRadius:10, border:"1px solid #e5e5e3", background:"#fff", fontSize:14, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", color:"#6b6a67", transition:"all 0.3s" }}
+        style={{ padding:"10px 24px", borderRadius:10, border:"1px solid #e5e5e3", background:"rgba(255,255,255,0.7)", fontSize:14, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", color:"#6b6a67", transition:"all 0.3s" }}
         onMouseEnter={e=>{e.currentTarget.style.background="#f5f4f1";e.currentTarget.style.color="#111";e.currentTarget.style.borderColor="#bbb";}}
-        onMouseLeave={e=>{e.currentTarget.style.background="#fff";e.currentTarget.style.color="#6b6a67";e.currentTarget.style.borderColor="#e5e5e3";}}>
+        onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.7)";e.currentTarget.style.color="#6b6a67";e.currentTarget.style.borderColor="#e5e5e3";}}>
         Enviar otro mensaje →
       </button>
     </div>
@@ -405,17 +523,24 @@ function Contacto() {
   };
   if (sent) return <SuccessScreen name={form.name} onReset={() => { setSent(false); setStatus(null); }} />;
   const fieldStyle = (name) => ({
-    width:"100%", fontFamily:"'DM Sans',sans-serif", fontSize:15, color:"#111", background:"#fff",
-    border:`1px solid ${focused===name?"#888":"#e5e5e3"}`, borderRadius:10, padding:"12px 16px", outline:"none",
-    transition:"border-color 0.3s, box-shadow 0.3s", boxShadow:focused===name?"0 0 0 3px rgba(0,0,0,0.05)":"none"
+    width:"100%", fontFamily:"'DM Sans',sans-serif", fontSize:15, color:"#111",
+    background:"rgba(255,255,255,0.75)",
+    border:`1px solid ${focused===name?"#888":"rgba(229,229,227,0.8)"}`,
+    borderRadius:10, padding:"12px 16px", outline:"none",
+    transition:"border-color 0.3s, box-shadow 0.3s",
+    boxShadow:focused===name?"0 0 0 3px rgba(0,0,0,0.05)":"none",
+    backdropFilter:"blur(4px)"
   });
   const errMsg = status==="error_fields" ? "Por favor rellena todos los campos."
     : status==="error_email" ? "Introduce un email válido."
     : status==="error_send" ? "Error al enviar. Escríbeme a 8corama@gmail.com" : null;
   return (
     <div style={{ fontFamily:"'DM Sans',sans-serif", width:"100%", maxWidth:520 }}>
-      <Reveal><p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:36 }}>✦ Contacto</p></Reveal>
-      <Reveal delay={80}><p style={{ fontSize:15.5, color:"#6b6a67", lineHeight:1.75, marginBottom:28 }}>¿Tienes un proyecto en mente? Cuéntame qué necesitas — te respondo en menos de 24 horas.</p></Reveal>
+      <Reveal><p style={{ fontFamily:"'DM Mono',monospace", fontSize:12, letterSpacing:"0.22em", color:"#b0afa9", textTransform:"uppercase", marginBottom:16, textAlign:"center" }}>✦ Contacto</p></Reveal>
+      <Reveal delay={40}>
+        <h2 style={{ fontSize:"clamp(1.8rem,3vw,2.6rem)", fontWeight:300, letterSpacing:"-1.5px", color:"#111", marginBottom:12, textAlign:"center" }}>Hablemos</h2>
+      </Reveal>
+      <Reveal delay={80}><p style={{ fontSize:15.5, color:"#6b6a67", lineHeight:1.75, marginBottom:28, textAlign:"center" }}>¿Tienes un proyecto en mente? Cuéntame qué necesitas — te respondo en menos de 24 horas.</p></Reveal>
       <Reveal delay={160}>
         <div style={{ animation: shake ? "shakeX 0.45s ease" : "none" }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
@@ -481,96 +606,41 @@ export default function Portfolio() {
         @keyframes shakeX { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
         @keyframes bounceIn { 0%{transform:scale(0) rotate(-8deg);opacity:0} 60%{transform:scale(1.2) rotate(3deg)} 80%{transform:scale(0.95)} 100%{transform:scale(1) rotate(0);opacity:1} }
         @keyframes slideIn3D {
-          from { opacity:0; transform:perspective(1200px) translateX(60px) translateZ(-80px) rotateY(-18deg) scale(0.94); }
-          to   { opacity:1; transform:perspective(1200px) translateX(0) translateZ(0) rotateY(0deg) scale(1); }
+          from { opacity:0; transform:perspective(1200px) translateY(40px) translateZ(-60px) scale(0.96); }
+          to   { opacity:1; transform:perspective(1200px) translateY(0) translateZ(0) scale(1); }
         }
         @keyframes slideOut3D {
-          from { opacity:1; transform:perspective(1200px) translateX(0) translateZ(0) rotateY(0deg) scale(1); }
-          to   { opacity:0; transform:perspective(1200px) translateX(-60px) translateZ(-80px) rotateY(18deg) scale(0.94); }
+          from { opacity:1; transform:perspective(1200px) translateY(0) translateZ(0) scale(1); }
+          to   { opacity:0; transform:perspective(1200px) translateY(-40px) translateZ(-60px) scale(0.96); }
         }
-        @keyframes navDot { 0%{transform:scale(0)} 60%{transform:scale(1.4)} 100%{transform:scale(1)} }
         * { box-sizing:border-box; margin:0; padding:0; }
-        html, body { width:100%; height:100%; overflow:hidden; }
+        html, body { width:100%; height:100%; }
         input::placeholder,textarea::placeholder { color:#c5c4c0; }
         ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:#d1d0cc;border-radius:99px}
         ::-webkit-scrollbar-track{background:transparent}
       `}</style>
 
       <Cursor />
+      <Particles />
 
-      <div style={{ display:"flex", height:"100vh", width:"100vw", overflow:"hidden", background:"#f8f7f5" }}>
+      {/* Background blobs */}
+      <div style={{ position:"fixed", top:-120, right:-80, width:500, height:500, borderRadius:"50%", background:"radial-gradient(circle, rgba(220,215,205,0.32) 0%, transparent 70%)", pointerEvents:"none", zIndex:0 }} />
+      <div style={{ position:"fixed", bottom:-100, left:"10%", width:400, height:400, borderRadius:"50%", background:"radial-gradient(circle, rgba(200,220,210,0.22) 0%, transparent 70%)", pointerEvents:"none", zIndex:0 }} />
 
-        {/* SIDEBAR */}
-        <aside style={{ width:260, flexShrink:0, background:"#fff", borderRight:"1px solid #eeede9", display:"flex", flexDirection:"column", justifyContent:"space-between", padding:"32px 20px", position:"relative", zIndex:10 }}>
-          <div style={{ position:"absolute", inset:0, backgroundImage:"radial-gradient(circle at 80% 20%, rgba(220,216,208,0.18) 0%, transparent 60%)", pointerEvents:"none" }} />
-          <div style={{ position:"relative" }}>
-            <div style={{ marginBottom:30 }}>
-              <div style={{ width:52, height:52, borderRadius:"50%", background:"linear-gradient(135deg,#e8e4dc,#ccc9c0)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:600, color:"#6b6a67", marginBottom:16, boxShadow:"inset 0 1px 0 rgba(255,255,255,0.65), 0 2px 6px rgba(0,0,0,0.06)", transition:"transform 0.4s cubic-bezier(.22,1,.36,1)", cursor:"default" }}
-                onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1) rotate(-4deg)"}
-                onMouseLeave={e=>e.currentTarget.style.transform="scale(1) rotate(0deg)"}>AS</div>
-              <p style={{ fontSize:15, fontWeight:600, color:"#111", marginBottom:2 }}>Antonio Sánchez</p>
-              <p style={{ fontSize:13, color:"#b0afa9", marginBottom:14 }}>Programador & Diseñador Web</p>
-              <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"#eef6f0", border:"1px solid #d4ead9", padding:"4px 12px 4px 10px", borderRadius:999, fontSize:12, color:"#2d6a3f" }}>
-                <span style={{ width:7, height:7, borderRadius:"50%", background:"#2d6a3f", animation:"pulseGreen 2s ease-in-out infinite", display:"inline-block", flexShrink:0 }} />
-                Disponible
-              </div>
-            </div>
-            <nav style={{ display:"flex", flexDirection:"column", gap:3 }}>
-              {NAV.map(n => {
-                const isActive = active === n.id;
-                return (
-                  <button key={n.id} onClick={()=>navigate(n.id)}
-                    style={{ display:"flex", alignItems:"center", gap:12, padding:"11px 12px", borderRadius:10,
-                      fontSize:14, fontFamily:"'DM Sans',sans-serif",
-                      background:isActive?"#f5f4f1":"transparent", color:isActive?"#111":"#9a9995",
-                      fontWeight:isActive?500:400, border:"none", cursor:"pointer", textAlign:"left", width:"100%",
-                      transition:"all 0.35s cubic-bezier(.22,1,.36,1)",
-                      transform:isActive?"translateX(3px)":"translateX(0)" }}
-                    onMouseEnter={e=>{ if(!isActive){e.currentTarget.style.background="#f9f8f6";e.currentTarget.style.color="#666";} }}
-                    onMouseLeave={e=>{ if(!isActive){e.currentTarget.style.background="transparent";e.currentTarget.style.color="#9a9995";} }}>
-                    <span style={{ width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:7, fontSize:13,
-                      background:isActive?"#fff":"transparent", color:isActive?"#111":"#c5c4c0",
-                      boxShadow:isActive?"0 1px 3px rgba(0,0,0,0.08)":"none", transition:"all 0.35s", flexShrink:0 }}>{n.icon}</span>
-                    {n.label}
-                    {isActive && <span style={{ marginLeft:"auto", width:5, height:5, borderRadius:"50%", background:"#111", animation:"navDot 0.4s cubic-bezier(.22,1,.36,1)" }} />}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-          <div style={{ position:"relative", display:"flex", flexDirection:"column", gap:10 }}>
-            <button onClick={()=>navigate("contacto")}
-              style={{ width:"100%", padding:"12px 0", fontSize:14, fontWeight:500, fontFamily:"'DM Sans',sans-serif", background:"#111", color:"#fff", border:"none", borderRadius:10, cursor:"pointer", transition:"all 0.35s cubic-bezier(.22,1,.36,1)", boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}
-              onMouseEnter={e=>{ e.currentTarget.style.background="#1a1a1a";e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.2)"; }}
-              onMouseLeave={e=>{ e.currentTarget.style.background="#111";e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="0 2px 8px rgba(0,0,0,0.12)"; }}>
-              Solicitar presupuesto
-            </button>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
-              {[{label:"Discord",url:"https://discord.com/users/antoniosanchez"},{label:"GitHub",url:"https://github.com/00010-0"},{label:"IG",url:"https://www.instagram.com/antoniosanchezzgz/"}].map(s=>(
-                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
-                  style={{ padding:"8px 4px", fontSize:12, fontFamily:"'DM Sans',sans-serif", color:"#9a9995", background:"#f5f4f1", border:"1px solid #e8e7e4", borderRadius:8, textAlign:"center", textDecoration:"none", transition:"all 0.3s", display:"block" }}
-                  onMouseEnter={e=>{ e.currentTarget.style.background="#fff";e.currentTarget.style.color="#111";e.currentTarget.style.borderColor="#bbb";e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 3px 10px rgba(0,0,0,0.08)"; }}
-                  onMouseLeave={e=>{ e.currentTarget.style.background="#f5f4f1";e.currentTarget.style.color="#9a9995";e.currentTarget.style.borderColor="#e8e7e4";e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none"; }}>
-                  {s.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        </aside>
+      {/* Full page layout */}
+      <div style={{ minHeight:"100vh", width:"100vw", background:"#f8f7f5", position:"relative" }}>
 
-        {/* MAIN */}
-        <main style={{ flex:1, overflow:"hidden", position:"relative" }}>
-          <div style={{ position:"absolute", top:-100, right:-100, width:400, height:400, borderRadius:"50%", background:"radial-gradient(circle, rgba(220,215,205,0.28) 0%, transparent 70%)", pointerEvents:"none", zIndex:0 }} />
-          <div style={{ position:"absolute", bottom:-80, left:"20%", width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle, rgba(200,220,210,0.18) 0%, transparent 70%)", pointerEvents:"none", zIndex:0 }} />
-          <Particles />
+        <TopNav active={active} navigate={navigate} />
+
+        <main id="main-scroll" style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:"96px clamp(24px,5vw,80px) 60px", position:"relative", zIndex:1 }}>
           <div key={active} style={{
-            position:"absolute", inset:0, overflowY:"auto", zIndex:1,
-            display:"flex", alignItems:"center", justifyContent:"center", padding:"3rem",
+            width:"100%", display:"flex", justifyContent:"center",
             animation: `${exiting?"slideOut3D":"slideIn3D"} 0.55s cubic-bezier(.22,1,.36,1) forwards`
           }}>
             {panels[active]}
           </div>
         </main>
+
       </div>
     </>
   );
